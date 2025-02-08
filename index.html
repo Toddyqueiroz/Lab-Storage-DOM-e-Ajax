@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório jQuery</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { width: 80%; margin: auto; }
+        .section { border: 1px solid #000; padding: 20px; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background-color: #ddd; }
+        .btn { cursor: pointer; padding: 5px 10px; margin: 5px; }
+        .delete { background-color: red; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Laboratório jQuery</h1>
+
+        <!-- LIVRARIA -->
+        <div class="section" id="livraria">
+            <h2>Cadastro de Livros</h2>
+            <form id="formLivro">
+                <input type="text" id="titulo" placeholder="Título" required>
+                <input type="text" id="descricao" placeholder="Descrição" required>
+                <input type="text" id="autor" placeholder="Autores" required>
+                <input type="text" id="genero" placeholder="Estilo" required>
+                <button type="submit">Adicionar</button>
+                <button type="button" id="limpar">Limpar</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Autores</th>
+                        <th>Estilo</th>
+                        <th>Descrição</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaLivros"></tbody>
+            </table>
+            <button id="enviar">Enviar</button>
+        </div>
+
+        <!-- CAFETERIA -->
+        <div class="section" id="cafeteria">
+            <h2>Cardápio</h2>
+            <ul id="menu"></ul>
+            <h3>Pedidos</h3>
+            <ul id="pedidos"></ul>
+            <p><strong>Total:</strong> R$ <span id="total">0</span></p>
+        </div>
+
+        <!-- RECEITAS -->
+        <div class="section" id="receitas">
+            <h2>Receitas</h2>
+            <ul id="listaReceitas"></ul>
+        </div>
+
+        <!-- CEP -->
+        <div class="section" id="cep">
+            <h2>Consultar CEP</h2>
+            <input type="text" id="cepInput" placeholder="Digite o CEP">
+            <button id="buscarCEP">Buscar</button>
+            <p id="endereco"></p>
+        </div>
+    </div>
+
+    <script>
+        // LIVRARIA
+        let livros = [];
+        $(document).ready(function() {
+            $('#formLivro').submit(function(event) {
+                event.preventDefault();
+                let livro = {
+                    titulo: $('#titulo').val(),
+                    descricao: $('#descricao').val(),
+                    genero: $('#genero').val(),
+                    autor: $('#autor').val()
+                };
+                livros.push(livro);
+                $('#listaLivros').append(`
+                    <tr>
+                        <td>${livro.titulo}</td>
+                        <td>${livro.autor}</td>
+                        <td>${livro.genero}</td>
+                        <td>${livro.descricao}</td>
+                        <td><button class="btn delete">Apagar</button></td>
+                    </tr>
+                `);
+                $('#formLivro')[0].reset();
+            });
+            $(document).on('click', '.delete', function() {
+                $(this).closest('tr').remove();
+            });
+            $('#enviar').click(function() {
+                $.post('http://httpbin.org/post', JSON.stringify(livros), function(response) {
+                    alert('Dados enviados com sucesso!');
+                });
+            });
+        });
+
+        // CAFETERIA
+        let menu = ["Capuccino", "Espresso", "Frapuccino", "Chococcino", "Chocolate Quente", "Frapê", "Suco de Laranja", "Açaí", "Bolo de Laranja"];
+        let total = 0;
+        menu.forEach(item => {
+            $('#menu').append(`<li>${item} <button class="add">Adicionar</button></li>`);
+        });
+        $(document).on('click', '.add', function() {
+            let item = $(this).parent().text().replace('Adicionar', '');
+            $('#pedidos').append(`<li>${item}</li>`);
+            total += 10;
+            $('#total').text(total);
+        });
+
+        // RECEITAS
+        $.getJSON('https://rafaelescalfoni.github.io/desenv_web/receitas.json', function(data) {
+            data.forEach(receita => {
+                $('#listaReceitas').append(`<li>${receita.nome}</li>`);
+            });
+        });
+
+        // CEP
+        $('#buscarCEP').click(function() {
+            let cep = $('#cepInput').val();
+            $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
+                $('#endereco').text(`${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`);
+            });
+        });
+    </script>
+</body>
+</html>
